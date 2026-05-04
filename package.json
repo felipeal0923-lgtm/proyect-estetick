@@ -1,0 +1,39 @@
+{
+  "name": "nuevo",
+  "version": "1.0.0",
+  "main": "index.js",
+  "scripts": {
+    "start": "concurrently \"npm run backend\" \"expo start\"",
+    "android": "expo start --android",
+    "ios": "expo start --ios",
+    "web": "concurrently \"npm run backend\" \"expo start --web\"",
+    "backend": "node backend/server.js",
+    "dev": "concurrently \"npm run backend\" \"npm run web\"",
+    "list-users": "node -e \"const { Pool } = require('pg'); const p = new Pool({ connectionString: process.env.DATABASE_URL }); p.query('SELECT * FROM users').then(r => { console.table(r.rows); p.end(); })\""
+  },
+  "engines": {
+    "node": ">=20.0.0"
+  },
+  "dependencies": {
+    "@expo/metro-runtime": "~6.1.2",
+    "cors": "^2.8.6",
+    "expo": "~54.0.34",
+    "expo-image-picker": "~17.0.11",
+    "expo-linear-gradient": "~15.0.8",
+    "expo-status-bar": "~3.0.9",
+    "express": "^5.2.1",
+    "i": "^0.3.7",
+    "react": "19.1.0",
+    "react-dom": "19.1.0",
+    "react-native": "0.81.5",
+    "react-native-linear-gradient": "^2.8.3",
+    "react-native-web": "^0.21.0"
+  },
+  "private": true,
+  "devDependencies": {
+    "concurrently": "^9.2.1",
+    "eas-cli": "^18.10.0",
+    "expo-module-scripts": "^55.0.2",
+    "pg": "^8.20.0"
+  }
+}
