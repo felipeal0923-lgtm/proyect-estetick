@@ -40,6 +40,15 @@ export default function AdminScreen({ navigateTo }) {
         } catch (err) { console.log(err); }
     };
 
+    const clearNotifications = async () => {
+        const userId = localStorage.getItem('userId') || 1;
+        try {
+            await fetch(`${API_URL}/api/notifications/user/${userId}`, { method: 'DELETE' });
+            setNotifications([]);
+            setUnreadCount(0);
+        } catch (err) { console.log('Error clearing admin notis:', err); }
+    };
+
     useEffect(() => {
         fetchData();
         fetchNotifications();
@@ -212,7 +221,7 @@ export default function AdminScreen({ navigateTo }) {
 
     const handleDeleteAppointment = (id) => {
         const confirmDelete = () => {
-            fetch(`${API_URL}/api/admin/appointments/${id}`, { method: 'DELETE' })
+            fetch(`${API_URL}/api/appointments/${id}?source=admin`, { method: 'DELETE' })
                 .then(res => res.json())
                 .then(data => {
                     if (data.success) {
@@ -260,7 +269,8 @@ export default function AdminScreen({ navigateTo }) {
                                 <Text style={styles.cardInfoText} numberOfLines={1}>{app.name}</Text>
                             </View>
                             <View style={{ flexDirection: 'row', alignItems: 'center', flex: 1, justifyContent: 'flex-end' }}>
-
+                                <Feather name="phone" size={14} color="#898989" style={{ marginRight: 6 }} />
+                                <Text style={styles.cardInfoText}>{app.phone || 'Sin número'}</Text>
                             </View>
                         </View>
                     </View>
@@ -438,7 +448,10 @@ export default function AdminScreen({ navigateTo }) {
                 <Text style={styles.title}>Hola Bienvenida!!</Text>
 
                 <TouchableOpacity
-                    onPress={() => setNotiVisible(true)}
+                    onPress={() => {
+                        setNotiVisible(true);
+                        setUnreadCount(0);
+                    }}
                     style={{ padding: 10, position: 'relative' }}
                 >
                     <Feather name="bell" size={24} color="#FFF" />
@@ -498,7 +511,10 @@ export default function AdminScreen({ navigateTo }) {
                 visible={notiVisible}
                 transparent={true}
                 animationType="slide"
-                onRequestClose={() => setNotiVisible(false)}
+                onRequestClose={() => {
+                    setNotiVisible(false);
+                    clearNotifications();
+                }}
             >
                 <View style={styles.notiModalOverlay}>
                     <LinearGradient
@@ -507,7 +523,10 @@ export default function AdminScreen({ navigateTo }) {
                     >
                         <View style={styles.notiHeader}>
                             <Text style={styles.notiTitle}>Avisos de Clientes</Text>
-                            <TouchableOpacity onPress={() => setNotiVisible(false)}>
+                            <TouchableOpacity onPress={() => {
+                                setNotiVisible(false);
+                                clearNotifications();
+                            }}>
                                 <Feather name="x" size={24} color="#FFF" />
                             </TouchableOpacity>
                         </View>
@@ -572,12 +591,12 @@ const styles = StyleSheet.create({
     tabContent: { flex: 1 },
     emptyText: { color: '#FFFFFF', fontSize: 18, textAlign: 'center', marginTop: 50 },
     card: {
-        backgroundColor: 'rgba(255,255,255,0.08)',
+        backgroundColor: '#2c2c2c7b',
         borderRadius: 15,
         padding: 15,
         marginBottom: 15,
-        borderWidth: 1,
-        borderColor: 'rgba(255,255,255,0.1)',
+
+
     },
     cardTop: { flexDirection: 'row', alignItems: 'center', marginBottom: 10 },
     cardDateText: { color: '#FFFFFF', fontSize: 16, fontWeight: 'bold', marginLeft: 15 },
@@ -765,9 +784,10 @@ const styles = StyleSheet.create({
         fontWeight: 'bold',
     },
     notiItem: {
+        backgroundColor: 'rgba(255, 255, 255, 0.1)',
         padding: 15,
-        borderBottomWidth: 1,
-        borderBottomColor: 'rgba(255,255,255,0.1)',
+        borderRadius: 12,
+        marginBottom: 10,
     },
     notiText: {
         color: '#FFF',

@@ -69,11 +69,22 @@ export default function ScheduleTab() {
     };
 
     const changeMonth = (offset) => {
-        setCurrentDate(new Date(currentDate.getFullYear(), currentDate.getMonth() + offset, 1));
+        const newDate = new Date(currentDate.getFullYear(), currentDate.getMonth() + offset, 1);
+        const today = new Date();
+        const currentMonthFirst = new Date(today.getFullYear(), today.getMonth(), 1);
+        if (newDate < currentMonthFirst) return; // No permitir ir a meses pasados
+        setCurrentDate(newDate);
     };
 
     const changeYear = (offset) => {
-        setCurrentDate(new Date(currentDate.getFullYear() + offset, currentDate.getMonth(), 1));
+        const newDate = new Date(currentDate.getFullYear() + offset, currentDate.getMonth(), 1);
+        const today = new Date();
+        const currentMonthFirst = new Date(today.getFullYear(), today.getMonth(), 1);
+        if (newDate < currentMonthFirst) {
+            setCurrentDate(currentMonthFirst); // Regresar al mes mínimo actual
+            return;
+        }
+        setCurrentDate(newDate);
     };
 
     const timeSlots = [
@@ -118,22 +129,30 @@ export default function ScheduleTab() {
                                     selectedDate.getFullYear() === currentDate.getFullYear() &&
                                     dayObj.isCurrentMonth;
 
+                                const today = new Date();
+                                const isPast = dayObj.isCurrentMonth && 
+                                               currentDate.getFullYear() === today.getFullYear() &&
+                                               currentDate.getMonth() === today.getMonth() &&
+                                               dayObj.day < today.getDate();
+
+                                const isDisabled = !dayObj.isCurrentMonth || isPast;
+
                                 return (
                                     <TouchableOpacity
                                         key={i}
                                         style={[styles.dateCell, isSelected && styles.activeDateCell]}
                                         onPress={() => {
-                                            if (dayObj.isCurrentMonth) {
+                                            if (!isDisabled) {
                                                 setSelectedDate(new Date(currentDate.getFullYear(), currentDate.getMonth(), dayObj.day));
                                                 setStep(2);
                                             }
                                         }}
-                                        disabled={!dayObj.isCurrentMonth}
+                                        disabled={isDisabled}
                                     >
                                         <Text style={[
                                             styles.dateText,
                                             isSelected && styles.activeDateText,
-                                            !dayObj.isCurrentMonth && styles.inactiveDateText
+                                            isDisabled && styles.inactiveDateText
                                         ]}>
                                             {dayObj.day.toString().padStart(2, '0')}
                                         </Text>

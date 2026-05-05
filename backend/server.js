@@ -1,3 +1,4 @@
+require('dotenv').config();
 const express = require('express');
 const cors = require('cors');
 const { Pool } = require('pg');
@@ -6,6 +7,13 @@ const app = express();
 app.use(cors());
 app.use(express.json());
 
+app.use((req, res, next) => {
+  res.setHeader(
+    'Content-Security-Policy',
+    "default-src 'self'; connect-src 'self' http://localhost:3001; img-src 'self' data:; style-src 'self' 'unsafe-inline'; script-src 'self';"
+  );
+  next();
+});
 // ─── Conexión a la base de datos ───────────────────────────────────────────
 const pool = new Pool({
     connectionString: process.env.DATABASE_URL,
@@ -256,17 +264,30 @@ app.get('/api/appointments/user/:userId', async (req, res) => {
     }
 });
 
-// Eliminar cita (por usuario)
+// Eliminar cita (con notificaciones bidireccionales)
 app.delete('/api/appointments/:id', async (req, res) => {
+    const { source } = req.query; // 'admin' o 'user'
     try {
-        const appt = await pool.query('SELECT "userId", date, time FROM appointments WHERE id = $1', [req.params.id]);
+        const appt = await pool.query(
+            `SELECT a."userId", a.date, a.time, u.name 
+             FROM appointments a JOIN users u ON a."userId" = u.id 
+             WHERE a.id = $1`, [req.params.id]
+        );
         if (appt.rows.length > 0) {
-            const { userId, date, time } = appt.rows[0];
-            const message = `Tu cita del ${date} a las ${time} ha sido cancelada por el administrador.`;
-            await pool.query(
-                `INSERT INTO notifications ("userId", message, date, "businessId") VALUES ($1, $2, $3, 1)`,
-                [userId, message, new Date().toISOString()]
-            );
+            const { userId, date, time, name } = appt.rows[0];
+            if (source === 'admin') {
+                const message = `Tu cita del ${date} a las ${time} ha sido cancelada por el administrador.`;
+                await pool.query(
+                    `INSERT INTO notifications ("userId", message, date, "businessId") VALUES ($1, $2, $3, 1)`,
+                    [userId, message, new Date().toISOString()]
+                );
+            } else if (source === 'user') {
+                const message = `El cliente ${name} canceló su cita del ${date} a las ${time}.`;
+                await pool.query(
+                    `INSERT INTO notifications ("userId", message, date, "businessId") VALUES ($1, $2, $3, 1)`,
+                    [1, message, new Date().toISOString()] // 1 es el ID del admin
+                );
+            }
         }
         await pool.query('DELETE FROM appointments WHERE id = $1', [req.params.id]);
         res.json({ success: true });

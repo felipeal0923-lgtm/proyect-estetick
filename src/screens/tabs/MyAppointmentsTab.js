@@ -67,7 +67,7 @@ export default function MyAppointmentsTab() {
     const handleCancelAppointment = (id) => {
         const cancelAction = async () => {
             try {
-                const res = await fetch(`${API_URL}/api/appointments/${id}`, { method: 'DELETE' });
+                const res = await fetch(`${API_URL}/api/appointments/${id}?source=user`, { method: 'DELETE' });
                 const data = await res.json();
                 if (data.success) {
                     alert('Cita cancelada con éxito');

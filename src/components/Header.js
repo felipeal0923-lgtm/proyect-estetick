@@ -116,9 +116,11 @@ export default function Header({ onNavigate, unreadCount, onPressNoti }) {
                 style={styles.menuItem}
                 onPress={() => {
                   setMenuVisible(false);
-                  if ((option.id === 1 || option.id === 2) && typeof onNavigate === 'function') {
-                    onNavigate(3);
-                  } else if (option.id === 3) {
+                  if (typeof onNavigate === 'function') {
+                    if (option.id === 1) onNavigate(4);      // Mis Agendas
+                    else if (option.id === 2) onNavigate(3); // Mi Perfil
+                  }
+                  if (option.id === 3) {
                     if (typeof localStorage !== 'undefined') {
                       localStorage.removeItem('userId');
                       localStorage.removeItem('userName');

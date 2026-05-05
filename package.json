@@ -3,13 +3,17 @@
   "version": "1.0.0",
   "main": "index.js",
   "scripts": {
-    "start": "concurrently \"npm run backend\" \"expo start\"",
+    "start": "concurrently --handle-input \"npm run backend\" \"expo start\"",
     "android": "expo start --android",
     "ios": "expo start --ios",
-    "web": "concurrently \"npm run backend\" \"expo start --web\"",
     "backend": "node backend/server.js",
-    "dev": "concurrently \"npm run backend\" \"npm run web\"",
-    "list-users": "node -e \"const { Pool } = require('pg'); const p = new Pool({ connectionString: process.env.DATABASE_URL }); p.query('SELECT * FROM users').then(r => { console.table(r.rows); p.end(); })\""
+    "web": "concurrently --handle-input \"npm run backend\" \"expo start --web\"",
+    "dev": "concurrently --handle-input \"npm run backend\" \"npm run web\"",
+    "list-users": "node -r dotenv/config -e \"const { Pool } = require('pg'); const p = new Pool({ connectionString: process.env.DATABASE_URL, ssl: { rejectUnauthorized: false } }); p.query('SELECT * FROM users').then(r => { console.table(r.rows); p.end(); })\"",
+    "git-status": "git status",
+    "git-add": "git add .",
+    "git-commit": "git commit -m",
+    "git-push": "git push origin main"
   },
   "engines": {
     "node": ">=20.0.0"
@@ -17,6 +21,7 @@
   "dependencies": {
     "@expo/metro-runtime": "~6.1.2",
     "cors": "^2.8.6",
+    "dotenv": "^17.4.2",
     "expo": "~54.0.34",
     "expo-image-picker": "~17.0.11",
     "expo-linear-gradient": "~15.0.8",

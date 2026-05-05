@@ -9,6 +9,7 @@ import ScheduleTab from './tabs/ScheduleTab';
 import PricesTab from './tabs/PricesTab';
 import GalleryTab from './tabs/GalleryTab';
 import ProfileTab from './tabs/ProfileTab';
+import MyAppointmentsTab from './tabs/MyAppointmentsTab';
 
 import { API_URL } from '../config';
 
@@ -71,6 +72,7 @@ export default function DashboardScreen() {
             case 1: return <PricesTab />;
             case 2: return <GalleryTab />;
             case 3: return <ProfileTab />;
+            case 4: return <MyAppointmentsTab />;
             default: return <ScheduleTab />;
         }
     };
@@ -83,7 +85,10 @@ export default function DashboardScreen() {
             <Header 
                 onNavigate={setActiveTabIndex} 
                 unreadCount={unreadCount}
-                onPressNoti={() => setNotiVisible(true)}
+                onPressNoti={() => {
+                    setNotiVisible(true);
+                    setUnreadCount(0);
+                }}
             />
             <Menu 
                 activeIndex={activeTabIndex} 
@@ -99,7 +104,10 @@ export default function DashboardScreen() {
                 visible={notiVisible}
                 transparent={true}
                 animationType="slide"
-                onRequestClose={() => setNotiVisible(false)}
+                onRequestClose={() => {
+                    setNotiVisible(false);
+                    clearNotifications();
+                }}
             >
                 <View style={styles.notiModalOverlay}>
                     <LinearGradient
@@ -108,7 +116,10 @@ export default function DashboardScreen() {
                     >
                         <View style={styles.notiHeader}>
                             <Text style={styles.notiTitle}>Notificaciones</Text>
-                            <TouchableOpacity onPress={() => setNotiVisible(false)}>
+                            <TouchableOpacity onPress={() => {
+                                setNotiVisible(false);
+                                clearNotifications();
+                            }}>
                                 <Feather name="x" size={24} color="#FFF" />
                             </TouchableOpacity>
                         </View>
@@ -172,9 +183,10 @@ const styles = StyleSheet.create({
         fontWeight: 'bold',
     },
     notiItem: {
+        backgroundColor: 'rgba(255, 255, 255, 0.15)',
         padding: 15,
-        borderBottomWidth: 1,
-        borderBottomColor: 'rgba(255,255,255,0.1)',
+        borderRadius: 12,
+        marginBottom: 10,
     },
     unreadNoti: {
         backgroundColor: 'rgba(255, 255, 255, 0.15)',

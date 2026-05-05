@@ -188,34 +188,7 @@ export default function ProfileTab() {
                 )}
             </View>
 
-            <View style={styles.divider} />
-
-            {/* Sección de Agendas */}
-            <View style={styles.agendasHeader}>
-                <Text style={styles.sectionTitle}>Mis Agendas</Text>
-                <TouchableOpacity onPress={fetchUserAppointments}>
-                    <Feather name="refresh-cw" size={20} color="#84CC16" />
-                </TouchableOpacity>
-            </View>
-
-            {userAppointments.length === 0 ? (
-                <Text style={styles.emptyText}>No tienes citas agendadas.</Text>
-            ) : (
-                userAppointments.map((app, index) => (
-                    <View key={index} style={styles.appointmentCard}>
-                        <View style={styles.appointmentInfo}>
-                            <Feather name="calendar" size={20} color="#84CC16" />
-                            <Text style={styles.appointmentDate}>{app.date} | {app.time}</Text>
-                        </View>
-                        <TouchableOpacity
-                            style={styles.btnCancel}
-                            onPress={() => handleCancelAppointment(app.id)}
-                        >
-                            <Text style={styles.btnCancelText}>Cancelar</Text>
-                        </TouchableOpacity>
-                    </View>
-                ))
-            )}
+            {/* Sección de Agendas fue movida a MyAppointmentsTab.js */}
 
         </ScrollView>
     );
