@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { View, Text, StyleSheet, ScrollView, TouchableOpacity, ActivityIndicator, TextInput, Alert, Image, Platform, Modal } from 'react-native';
 import { LinearGradient } from 'expo-linear-gradient';
 import { Feather } from '@expo/vector-icons';
@@ -20,6 +20,8 @@ export default function AdminScreen({ navigateTo }) {
     const [editingId, setEditingId] = useState(null);
     const [editingName, setEditingName] = useState('');
     const [editingPrice, setEditingPrice] = useState('');
+    const pricesScrollRef = useRef(null);
+    const promotionsScrollRef = useRef(null);
 
     const [notiVisible, setNotiVisible] = useState(false);
     const [notifications, setNotifications] = useState([]);
@@ -330,212 +332,221 @@ export default function AdminScreen({ navigateTo }) {
     );
 
     const renderPrices = () => (
-        <View style={styles.tabContent}>
-            
-            <ScrollView showsVerticalScrollIndicator={false}>
-                {prices.map((p, index) => (
-                    <View
-                        key={index}
-                        style={styles.priceRowAdmin}
-                    >
-                        <View style={styles.accentBarAdmin} />
-                        <View style={styles.priceMainInfoAdmin}>
+        <ScrollView ref={pricesScrollRef} style={styles.tabContent} contentContainerStyle={{ paddingBottom: 40 }} showsVerticalScrollIndicator={false}>
+            <View style={styles.sectionCard}>
+                <View style={styles.sectionHeaderRow}>
+                    <Text style={styles.sectionTitle}>Lista de servicios</Text>
+                    <TouchableOpacity style={styles.addHeaderButton} onPress={() => pricesScrollRef.current?.scrollToEnd({ animated: true })}>
+                        <Feather name="plus" size={16} color="#EC4899" />
+                        <Text style={styles.addHeaderButtonText}>Agregar servicio</Text>
+                    </TouchableOpacity>
+                </View>
+                {prices.length === 0 ? (
+                    <Text style={styles.emptyText}>No hay servicios registrados.</Text>
+                ) : (
+                    prices.map((p, index) => (
+                        <View key={index} style={styles.priceRowAdmin}>
                             {editingId === p.id ? (
-                                <View style={{ flex: 1, padding: 10 }}>
+                                <View style={styles.editRow}>
                                     <TextInput
                                         style={[styles.inputAdmin, { marginBottom: 10 }]}
                                         placeholder="Nombre del servicio"
-                                        placeholderTextColor="rgba(255,255,255,0.7)"
+                                        placeholderTextColor="#9CA3AF"
                                         value={editingName}
                                         onChangeText={setEditingName}
                                     />
                                     <TextInput
                                         style={[styles.inputAdmin, { marginBottom: 10 }]}
-                                        placeholder="Precio (ej: 25,000)"
-                                        placeholderTextColor="rgba(255,255,255,0.7)"
+                                        placeholder="Precio (ej: 25.000)"
+                                        placeholderTextColor="#9CA3AF"
                                         value={editingPrice}
                                         onChangeText={(text) => setEditingPrice(text.replace(/[^0-9,.]/g, ''))}
                                         keyboardType="numeric"
                                     />
-                                    <View style={{ flexDirection: 'row', justifyContent: 'space-between' }}>
+                                    <View style={styles.editButtonsRow}>
                                         <TouchableOpacity style={styles.btnAddPrice} onPress={handleUpdatePrice}>
                                             <LinearGradient
-                                                colors={['#84CC16', '#65A30D']}
+                                                colors={['#34D399', '#22C55E']}
                                                 style={styles.btnGradient}
                                             >
-                                                <Text style={styles.btnAddText}>Guardar</Text>
+                                                <Text style={styles.addServiceButtonText}>Guardar</Text>
                                             </LinearGradient>
                                         </TouchableOpacity>
-                                        <TouchableOpacity style={styles.btnAddPrice} onPress={cancelEdit}>
+                                        <TouchableOpacity style={styles.btnCancelPrice} onPress={cancelEdit}>
                                             <LinearGradient
-                                                colors={['#FF4D6D', '#FF4D6D']}
+                                                colors={['#F87171', '#EF4444']}
                                                 style={styles.btnGradient}
                                             >
-                                                <Text style={styles.btnAddText}>Cancelar</Text>
+                                                <Text style={styles.addServiceButtonText}>Cancelar</Text>
                                             </LinearGradient>
                                         </TouchableOpacity>
                                     </View>
                                 </View>
                             ) : (
-                                <>
-                                    <Text style={styles.priceNameAdmin}>{p.name}</Text>
-                                    <View style={styles.priceRightAdmin}>
-                                        <View style={styles.priceCapsuleAdmin}>
-                                            <Text style={styles.priceValueAdmin}>${p.price}</Text>
+                                <View style={styles.priceRowContent}> 
+                                    <View style={styles.priceRowLeft}>
+                                        <View style={{ flex: 1 }}>
+                                            <Text style={styles.priceNameAdmin}>{p.name}</Text>
+                                            <Text style={styles.priceSubtitleAdmin}>Servicio</Text>
                                         </View>
-                                        <TouchableOpacity
-                                            onPress={() => startEdit(p)}
-                                            style={styles.deleteBtnAdmin}
-                                        >
-                                            <View style={styles.deleteIconBg}>
-                                                <Feather name="edit" size={16} color="#FFF" />
-                                            </View>
+                                    </View>
+                                    <View style={styles.priceRowRight}>
+                                        <Text style={styles.priceValueAdmin}>${p.price}</Text>
+                                        <TouchableOpacity onPress={() => startEdit(p)} style={styles.iconAction}>
+                                            <Feather name="edit" size={16} color="#EC4899" />
                                         </TouchableOpacity>
-                                        <TouchableOpacity
-                                            onPress={() => handleDeletePrice(p.id)}
-                                            style={styles.deleteBtnAdmin}
-                                        >
-                                            <View style={styles.deleteIconBg}>
-                                                <Feather name="trash-2" size={16} color="#FFF" />
-                                            </View>
+                                        <TouchableOpacity onPress={() => handleDeletePrice(p.id)} style={[styles.iconAction, styles.iconActionDelete]}>
+                                            <Feather name="trash-2" size={16} color="#EC4899" />
                                         </TouchableOpacity>
                                     </View>
-                                </>
+                                </View>
                             )}
                         </View>
-                    </View>
-                ))}
-            </ScrollView>
+                    ))
+                )}
+            </View>
             <View style={styles.formCard}>
-                <TextInput
-                    style={styles.inputAdmin}
-                    placeholder="Nombre del servicio"
-                    placeholderTextColor="rgba(255,255,255,0.7)"
-                    value={newName}
-                    onChangeText={setNewName}
-                />
-                <TextInput
-                    style={styles.inputAdmin}
-                    placeholder="Precio (ej: 25,000)"
-                    placeholderTextColor="rgba(255,255,255,0.7)"
-                    value={newPrice}
-                    onChangeText={(text) => setNewPrice(text.replace(/[^0-9,.]/g, ''))}
-                    keyboardType="numeric"
-                />
-                <TouchableOpacity style={styles.btnAddPrice} onPress={handleAddPrice}>
+                <Text style={styles.sectionTitle}>Agregar nuevo servicio</Text>
+                <View style={styles.inputWrapper}>
+                    <Feather name="tag" size={18} color="#9CA3AF" style={styles.inputIcon} />
+                    <TextInput
+                        style={styles.inputAdmin}
+                        placeholder="Nombre del servicio"
+                        placeholderTextColor="#9CA3AF"
+                        value={newName}
+                        onChangeText={setNewName}
+                    />
+                </View>
+                <View style={styles.inputWrapper}>
+                    <Feather name="dollar-sign" size={18} color="#9CA3AF" style={styles.inputIcon} />
+                    <TextInput
+                        style={styles.inputAdmin}
+                        placeholder="Precio (ej: 25.000)"
+                        placeholderTextColor="#9CA3AF"
+                        value={newPrice}
+                        onChangeText={(text) => setNewPrice(text.replace(/[^0-9,.]/g, ''))}
+                        keyboardType="numeric"
+                    />
+                </View>
+                <TouchableOpacity style={styles.addServiceButton} onPress={handleAddPrice}>
                     <LinearGradient
-                        colors={['#84CC16', '#65A30D']}
+                        colors={['#34D399', '#22C55E']}
                         style={styles.btnGradient}
                     >
-                        <Text style={styles.btnAddText}>Agregar Servicio</Text>
+                        <Text style={styles.addServiceButtonText}>+ Agregar servicio</Text>
                     </LinearGradient>
                 </TouchableOpacity>
             </View>
-        </View>
+        </ScrollView>
     );
 
     const renderPromotions = () => (
-        <View style={styles.tabContent}>
-            <View style={styles.formCard}>
-                <TextInput
-                    style={styles.inputAdmin}
-                    placeholder="Nombre de la promoción"
-                    placeholderTextColor="rgba(255,255,255,0.7)"
-                    value={newName}
-                    onChangeText={setNewName}
-                />
-                <TextInput
-                    style={styles.inputAdmin}
-                    placeholder="Precio (ej: 25,000)"
-                    placeholderTextColor="rgba(255,255,255,0.7)"
-                    value={newPrice}
-                    onChangeText={(text) => setNewPrice(text.replace(/[^0-9,.]/g, ''))}
-                    keyboardType="numeric"
-                />
-                <TouchableOpacity style={styles.btnAddPrice} onPress={handleAddPromotion}>
-                    <LinearGradient
-                        colors={['#84CC16', '#65A30D']}
-                        style={styles.btnGradient}
-                    >
-                        <Text style={styles.btnAddText}>Agregar Promoción</Text>
-                    </LinearGradient>
-                </TouchableOpacity>
-            </View>
-            <ScrollView showsVerticalScrollIndicator={false}>
-                {promotions.map((p, index) => (
-                    <View
-                        key={index}
-                        style={styles.priceRowAdmin}
-                    >
-
-                        <View style={styles.priceMainInfoAdmin}>
+        <ScrollView ref={promotionsScrollRef} style={styles.tabContent} contentContainerStyle={{ paddingBottom: 40 }} showsVerticalScrollIndicator={false}>
+            <View style={styles.sectionCard}>
+                <View style={styles.sectionHeaderRow}>
+                    <Text style={styles.sectionTitle}>Promociones</Text>
+                    <TouchableOpacity style={styles.addHeaderButton} onPress={() => promotionsScrollRef.current?.scrollToEnd({ animated: true })}>
+                        <Feather name="plus" size={16} color="#EC4899" />
+                        <Text style={styles.addHeaderButtonText}>Agregar promoción</Text>
+                    </TouchableOpacity>
+                </View>
+                {promotions.length === 0 ? (
+                    <Text style={styles.emptyText}>No hay promociones registradas.</Text>
+                ) : (
+                    promotions.map((p, index) => (
+                        <View key={index} style={styles.priceRowAdmin}>
                             {editingId === p.id ? (
-                                <View style={{ flex: 1, padding: 10 }}>
+                                <View style={styles.editRow}>
                                     <TextInput
                                         style={[styles.inputAdmin, { marginBottom: 10 }]}
                                         placeholder="Nombre de la promoción"
-                                        placeholderTextColor="rgba(255,255,255,0.7)"
+                                        placeholderTextColor="#9CA3AF"
                                         value={editingName}
                                         onChangeText={setEditingName}
                                     />
                                     <TextInput
                                         style={[styles.inputAdmin, { marginBottom: 10 }]}
-                                        placeholder="Precio (ej: 25,000)"
-                                        placeholderTextColor="rgba(255,255,255,0.7)"
+                                        placeholder="Precio (ej: 25.000)"
+                                        placeholderTextColor="#9CA3AF"
                                         value={editingPrice}
                                         onChangeText={(text) => setEditingPrice(text.replace(/[^0-9,.]/g, ''))}
                                         keyboardType="numeric"
                                     />
-                                    <View style={{ flexDirection: 'row', justifyContent: 'space-between' }}>
+                                    <View style={styles.editButtonsRow}>
                                         <TouchableOpacity style={styles.btnAddPrice} onPress={handleUpdatePromotion}>
                                             <LinearGradient
-                                                colors={['#84CC16', '#65A30D']}
+                                                colors={['#34D399', '#22C55E']}
                                                 style={styles.btnGradient}
                                             >
-                                                <Text style={styles.btnAddText}>Guardar</Text>
+                                                <Text style={styles.addServiceButtonText}>Guardar</Text>
                                             </LinearGradient>
                                         </TouchableOpacity>
-                                        <TouchableOpacity style={styles.btnAddPrice} onPress={cancelEdit}>
+                                        <TouchableOpacity style={styles.btnCancelPrice} onPress={cancelEdit}>
                                             <LinearGradient
-                                                colors={['#FF4D6D', '#FF4D6D']}
+                                                colors={['#F87171', '#EF4444']}
                                                 style={styles.btnGradient}
                                             >
-                                                <Text style={styles.btnAddText}>Cancelar</Text>
+                                                <Text style={styles.addServiceButtonText}>Cancelar</Text>
                                             </LinearGradient>
                                         </TouchableOpacity>
                                     </View>
                                 </View>
                             ) : (
-                                <>
-                                    <Text style={styles.priceNameAdmin}>{p.name}</Text>
-                                    <View style={styles.priceRightAdmin}>
-                                        <View style={styles.priceCapsuleAdmin}>
-                                            <Text style={styles.priceValueAdmin}>${p.price}</Text>
+                                <View style={styles.priceRowContent}>
+                                    <View style={styles.priceRowLeft}>
+                                        <View style={{ flex: 1 }}>
+                                            <Text style={styles.priceNameAdmin}>{p.name}</Text>
+                                            <Text style={styles.priceSubtitleAdmin}>Promoción</Text>
                                         </View>
-                                        <TouchableOpacity
-                                            onPress={() => startEdit(p)}
-                                            style={styles.deleteBtnAdmin}
-                                        >
-                                            <View style={styles.deleteIconBg}>
-                                                <Feather name="edit" size={16} color="#FFF" />
-                                            </View>
+                                    </View>
+                                    <View style={styles.priceRowRight}>
+                                        <Text style={styles.priceValueAdmin}>${p.price}</Text>
+                                        <TouchableOpacity onPress={() => startEdit(p)} style={styles.iconAction}>
+                                            <Feather name="edit" size={16} color="#EC4899" />
                                         </TouchableOpacity>
-                                        <TouchableOpacity
-                                            onPress={() => handleDeletePromotion(p.id)}
-                                            style={styles.deleteBtnAdmin}
-                                        >
-                                            <View style={styles.deleteIconBg}>
-                                                <Feather name="trash-2" size={16} color="#FFF" />
-                                            </View>
+                                        <TouchableOpacity onPress={() => handleDeletePromotion(p.id)} style={[styles.iconAction, styles.iconActionDelete]}>
+                                            <Feather name="trash-2" size={16} color="#EC4899" />
                                         </TouchableOpacity>
                                     </View>
-                                </>
+                                </View>
                             )}
                         </View>
-                    </View>
-                ))}
-            </ScrollView>
-        </View>
+                    ))
+                )}
+            </View>
+            <View style={styles.formCard}>
+                <Text style={styles.sectionTitle}>Agregar nueva promoción</Text>
+                <View style={styles.inputWrapper}>
+                    <Feather name="star" size={18} color="#9CA3AF" style={styles.inputIcon} />
+                    <TextInput
+                        style={styles.inputAdmin}
+                        placeholder="Nombre de la promoción"
+                        placeholderTextColor="#9CA3AF"
+                        value={newName}
+                        onChangeText={setNewName}
+                    />
+                </View>
+                <View style={styles.inputWrapper}>
+                    <Feather name="dollar-sign" size={18} color="#9CA3AF" style={styles.inputIcon} />
+                    <TextInput
+                        style={styles.inputAdmin}
+                        placeholder="Precio (ej: 25.000)"
+                        placeholderTextColor="#9CA3AF"
+                        value={newPrice}
+                        onChangeText={(text) => setNewPrice(text.replace(/[^0-9,.]/g, ''))}
+                        keyboardType="numeric"
+                    />
+                </View>
+                <TouchableOpacity style={styles.addServiceButton} onPress={handleAddPromotion}>
+                    <LinearGradient
+                        colors={['#34D399', '#22C55E']}
+                        style={styles.btnGradient}
+                    >
+                        <Text style={styles.addServiceButtonText}>+ Agregar promoción</Text>
+                    </LinearGradient>
+                </TouchableOpacity>
+            </View>
+        </ScrollView>
     );
 
     const renderGallery = () => (
@@ -592,7 +603,10 @@ export default function AdminScreen({ navigateTo }) {
                     <Feather name="log-out" size={24} color="#FFF" />
                 </TouchableOpacity>
 
-                <Text style={styles.title}>Hola Bienvenida!!</Text>
+                <View style={styles.headerTextContainer}>
+                    <Text style={styles.title}>Hola, Bienvenida!</Text>
+                    <Text style={styles.subtitle}>Administra tus servicios</Text>
+                </View>
 
                 <TouchableOpacity
                     onPress={() => {
@@ -615,28 +629,28 @@ export default function AdminScreen({ navigateTo }) {
                     style={[styles.tab, activeTab === 'agendas' && styles.activeTab]}
                     onPress={() => setActiveTab('agendas')}
                 >
-                    <Feather name="calendar" size={18} color={activeTab === 'agendas' ? "#FFF" : "#888"} />
+                    <Feather name="calendar" size={18} color={activeTab === 'agendas' ? "#EC4899" : "#9CA3AF"} />
                     <Text style={[styles.tabText, activeTab === 'agendas' && styles.activeTabText]}>Agendas</Text>
                 </TouchableOpacity>
                 <TouchableOpacity
                     style={[styles.tab, activeTab === 'prices' && styles.activeTab]}
                     onPress={() => setActiveTab('prices')}
                 >
-                    <Feather name="tag" size={18} color={activeTab === 'prices' ? "#FFF" : "#888"} />
+                    <Feather name="tag" size={18} color={activeTab === 'prices' ? "#EC4899" : "#9CA3AF"} />
                     <Text style={[styles.tabText, activeTab === 'prices' && styles.activeTabText]}>Precios</Text>
                 </TouchableOpacity>
                 <TouchableOpacity
                     style={[styles.tab, activeTab === 'promotions' && styles.activeTab]}
                     onPress={() => setActiveTab('promotions')}
                 >
-                    <Feather name="star" size={18} color={activeTab === 'promotions' ? "#FFF" : "#888"} />
+                    <Feather name="star" size={18} color={activeTab === 'promotions' ? "#EC4899" : "#9CA3AF"} />
                     <Text style={[styles.tabText, activeTab === 'promotions' && styles.activeTabText]}>Promos</Text>
                 </TouchableOpacity>
                 <TouchableOpacity
                     style={[styles.tab, activeTab === 'gallery' && styles.activeTab]}
                     onPress={() => setActiveTab('gallery')}
                 >
-                    <Feather name="image" size={18} color={activeTab === 'gallery' ? "#FFF" : "#888"} />
+                    <Feather name="image" size={18} color={activeTab === 'gallery' ? "#EC4899" : "#9CA3AF"} />
                     <Text style={[styles.tabText, activeTab === 'gallery' && styles.activeTabText]}>Galería</Text>
                 </TouchableOpacity>
             </View>
@@ -714,13 +728,26 @@ const styles = StyleSheet.create({
         paddingBottom: 20,
     },
     title: { color: '#FFFFFF', fontSize: 22, fontWeight: 'bold' },
+    headerTextContainer: {
+        alignItems: 'center',
+    },
+    subtitle: {
+        color: 'rgba(255,255,255,0.95)',
+        fontSize: 14,
+        marginTop: 4,
+    },
     tabBar: {
         flexDirection: 'row',
-        backgroundColor: '#2c2c2c',
-        padding: 5,
+        backgroundColor: '#FFFFFF',
+        padding: 8,
         marginHorizontal: 8,
         marginTop: 20,
-        borderRadius: 12,
+        borderRadius: 28,
+        shadowColor: '#000',
+        shadowOffset: { width: 0, height: 2 },
+        shadowOpacity: 0.06,
+        shadowRadius: 8,
+        elevation: 3,
     },
     tab: {
         flex: 1,
@@ -728,22 +755,22 @@ const styles = StyleSheet.create({
         alignItems: 'center',
         justifyContent: 'center',
         paddingVertical: 12,
-        borderRadius: 10,
-        gap: 8,
+        borderRadius: 20,
+        paddingHorizontal: 8,
     },
-    activeTab: { backgroundColor: '#F14C8B' },
-    tabText: { color: '#FFFFFF', fontWeight: 'bold' },
-    activeTabText: { color: '#FFF' },
+    activeTab: {
+        backgroundColor: '#FEE2E2',
+    },
+    tabText: { color: '#9CA3AF', fontWeight: '600' },
+    activeTabText: { color: '#EC4899' },
     content: { flex: 1, padding: 20 },
     tabContent: { flex: 1 },
-    emptyText: { color: '#FFFFFF', fontSize: 18, textAlign: 'center', marginTop: 50 },
+    emptyText: { color: '#6B7280', fontSize: 16, textAlign: 'center', marginTop: 20 },
     card: {
         backgroundColor: '#2c2c2c7b',
         borderRadius: 15,
         padding: 15,
         marginBottom: 15,
-
-
     },
     cardTop: { flexDirection: 'row', alignItems: 'center', marginBottom: 10 },
     cardDateText: { color: '#FFFFFF', fontSize: 16, fontWeight: 'bold', marginLeft: 15 },
@@ -761,7 +788,6 @@ const styles = StyleSheet.create({
         padding: 12,
         borderRadius: 10,
         marginBottom: 10,
-        outlineStyle: 'none',
     },
     btnAdd: {
         backgroundColor: '#84CC16',
@@ -808,72 +834,175 @@ const styles = StyleSheet.create({
         zIndex: 10,
     },
     formCard: {
-        backgroundColor: 'rgba(255,255,255,0.1)',
+        backgroundColor: '#FFFFFF',
         padding: 20,
-        borderRadius: 20,
+        borderRadius: 24,
         marginBottom: 20,
-        borderWidth: 1,
-        borderColor: 'rgba(255,255,255,0.1)',
+        shadowColor: '#000',
+        shadowOffset: { width: 0, height: 8 },
+        shadowOpacity: 0.08,
+        shadowRadius: 18,
+        elevation: 6,
     },
     inputAdmin: {
-        backgroundColor: 'rgba(0,0,0,0.2)',
-        color: '#FFF',
-        padding: 15,
-        borderRadius: 12,
-        marginBottom: 12,
+        backgroundColor: '#F3F4F6',
+        color: '#111827',
+        padding: 16,
+        paddingLeft: 48,
+        borderRadius: 16,
+        marginBottom: 14,
         fontSize: 15,
-        outlineStyle: 'none',
+        width: '100%',
+        borderWidth: 0,
+        borderColor: 'transparent',
+        outlineWidth: 0,
+        outlineColor: 'transparent',
     },
     btnAddPrice: {
-        borderRadius: 12,
+        borderRadius: 16,
         overflow: 'hidden',
-        marginTop: 5,
+        marginTop: 8,
+        flex: 1,
     },
     btnGradient: {
-        paddingVertical: 15,
+        paddingVertical: 16,
         alignItems: 'center',
+    },
+    sectionCard: {
+        backgroundColor: '#FFFFFF',
+        borderRadius: 28,
+        padding: 18,
+        marginBottom: 20,
+        shadowColor: '#000',
+        shadowOffset: { width: 0, height: 10 },
+        shadowOpacity: 0.08,
+        shadowRadius: 18,
+        elevation: 6,
+    },
+    sectionTitle: {
+        color: '#111827',
+        fontSize: 16,
+        fontWeight: '700',
+        marginBottom: 16,
+    },
+    sectionHeaderRow: {
+        flexDirection: 'row',
+        alignItems: 'center',
+        justifyContent: 'space-between',
+        marginBottom: 16,
+    },
+    addHeaderButton: {
+        flexDirection: 'row',
+        alignItems: 'center',
+        gap: 8,
+        paddingVertical: 10,
+        paddingHorizontal: 14,
+        borderRadius: 999,
+        backgroundColor: '#FEE2E2',
+    },
+    addHeaderButtonText: {
+        color: '#EC4899',
+        fontWeight: '700',
+        fontSize: 14,
+    },
+    listScroll: {
+        maxHeight: '70%',
+    },
+    editRow: {
+        flex: 1,
+        padding: 4,
+    },
+    editButtonsRow: {
+        flexDirection: 'row',
+        justifyContent: 'center',
+        gap: 12,
     },
     priceRowAdmin: {
+        backgroundColor: '#FFFFFF',
+        borderRadius: 24,
+        paddingVertical: 16,
+        paddingHorizontal: 16,
+        marginBottom: 12,
         flexDirection: 'row',
         alignItems: 'center',
-        backgroundColor: 'rgba(255, 255, 255, 0.15)',
-        borderRadius: 18,
-        minHeight: 70,
-        marginBottom: 10,
-        overflow: 'hidden',
-        borderWidth: 1,
-        borderColor: 'rgba(255, 255, 255, 0.2)',
+        justifyContent: 'space-between',
+        shadowColor: '#000',
+        shadowOffset: { width: 0, height: 6 },
+        shadowOpacity: 0.05,
+        shadowRadius: 12,
+        elevation: 3,
     },
-
-    priceMainInfoAdmin: {
+    priceRowContent: {
         flex: 1,
         flexDirection: 'row',
-        justifyContent: 'space-between',
         alignItems: 'center',
-        paddingHorizontal: 15,
+        justifyContent: 'space-between',
+        gap: 12,
     },
-    priceRightAdmin: {
+    priceRowLeft: {
+        flexDirection: 'row',
+        alignItems: 'center',
+        flex: 1,
+        gap: 12,
+    },
+    priceRowRight: {
         flexDirection: 'row',
         alignItems: 'center',
         gap: 10,
     },
     priceNameAdmin: {
-        color: '#FFF',
-        fontSize: 16,
-        fontWeight: '600',
-        flex: 1,
-        marginRight: 10,
+        color: '#111827',
+        fontSize: 14,
+        fontWeight: '700',
+        flexShrink: 1,
     },
-    priceCapsuleAdmin: {
-        backgroundColor: 'rgba(0, 0, 0, 0.2)',
-        paddingHorizontal: 10,
-        paddingVertical: 5,
-        borderRadius: 10,
+    priceSubtitleAdmin: {
+        color: '#6B7280',
+        fontSize: 13,
+        marginTop: 2,
     },
     priceValueAdmin: {
-        color: '#FFF',
-        fontSize: 15,
-        fontWeight: 'bold',
+        color: '#EC4899',
+        fontSize: 16,
+        fontWeight: '700',
+    },
+
+    inputWrapper: {
+        position: 'relative',
+    },
+    inputIcon: {
+        position: 'absolute',
+        top: 16,
+        left: 16,
+        zIndex: 10,
+    },
+    addServiceButton: {
+        borderRadius: 18,
+        overflow: 'hidden',
+        marginTop: 10,
+    },
+    addServiceButtonText: {
+        color: '#FFFFFF',
+        fontWeight: '700',
+        fontSize: 16,
+        width: '30',
+    },
+    iconAction: {
+        width: 38,
+        height: 38,
+        borderRadius: 19,
+        backgroundColor: '#FEE2E2',
+        justifyContent: 'center',
+        alignItems: 'center',
+    },
+    iconActionDelete: {
+        backgroundColor: '#FEE2E2',
+    },
+    btnCancelPrice: {
+        borderRadius: 16,
+        overflow: 'hidden',
+        marginTop: 8,
+        flex: 1,
     },
     deleteBtnAdmin: {
         padding: 5,
