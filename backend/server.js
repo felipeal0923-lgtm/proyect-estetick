@@ -406,6 +406,19 @@ app.delete('/api/admin/prices/:id', async (req, res) => {
     }
 });
 
+app.put('/api/admin/prices/:id', async (req, res) => {
+    const { name, price } = req.body;
+    try {
+        await pool.query(
+            'UPDATE prices SET name = $1, price = $2 WHERE id = $3',
+            [name, price, req.params.id]
+        );
+        res.json({ success: true });
+    } catch (err) {
+        res.status(500).json({ error: err.message });
+    }
+});
+
 // Admin — Galería
 app.post('/api/admin/gallery', async (req, res) => {
     const { url, businessId = 1 } = req.body;
@@ -446,6 +459,19 @@ app.post('/api/admin/promotions', async (req, res) => {
 app.delete('/api/admin/promotions/:id', async (req, res) => {
     try {
         await pool.query('DELETE FROM promotions WHERE id = $1', [req.params.id]);
+        res.json({ success: true });
+    } catch (err) {
+        res.status(500).json({ error: err.message });
+    }
+});
+
+app.put('/api/admin/promotions/:id', async (req, res) => {
+    const { name, price } = req.body;
+    try {
+        await pool.query(
+            'UPDATE promotions SET name = $1, price = $2 WHERE id = $3',
+            [name, price, req.params.id]
+        );
         res.json({ success: true });
     } catch (err) {
         res.status(500).json({ error: err.message });

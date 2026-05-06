@@ -17,6 +17,10 @@ export default function AdminScreen({ navigateTo }) {
     const [newPrice, setNewPrice] = useState('');
     const [newImageUrl, setNewImageUrl] = useState('');
 
+    const [editingId, setEditingId] = useState(null);
+    const [editingName, setEditingName] = useState('');
+    const [editingPrice, setEditingPrice] = useState('');
+
     const [notiVisible, setNotiVisible] = useState(false);
     const [notifications, setNotifications] = useState([]);
     const [unreadCount, setUnreadCount] = useState(0);
@@ -176,6 +180,52 @@ export default function AdminScreen({ navigateTo }) {
         }
     };
 
+    const startEdit = (item) => {
+        setEditingId(item.id);
+        setEditingName(item.name);
+        setEditingPrice(item.price);
+    };
+
+    const cancelEdit = () => {
+        setEditingId(null);
+        setEditingName('');
+        setEditingPrice('');
+    };
+
+    const handleUpdatePrice = async () => {
+        if (!editingName || !editingPrice) return alert('Llene todos los campos');
+        try {
+            const res = await fetch(`${API_URL}/api/admin/prices/${editingId}`, {
+                method: 'PUT',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ name: editingName, price: editingPrice })
+            });
+            const data = await res.json();
+            if (data.success) {
+                alert('Precio actualizado con éxito');
+                cancelEdit();
+                fetchData();
+            }
+        } catch (err) { alert('Error al actualizar: ' + err.message); }
+    };
+
+    const handleUpdatePromotion = async () => {
+        if (!editingName || !editingPrice) return alert('Llene todos los campos');
+        try {
+            const res = await fetch(`${API_URL}/api/admin/promotions/${editingId}`, {
+                method: 'PUT',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ name: editingName, price: editingPrice })
+            });
+            const data = await res.json();
+            if (data.success) {
+                alert('Promoción actualizada con éxito');
+                cancelEdit();
+                fetchData();
+            }
+        } catch (err) { alert('Error al actualizar: ' + err.message); }
+    };
+
     const handleAddImage = async () => {
         if (!newImageUrl) return alert('Ingrese una URL');
         try {
@@ -281,6 +331,81 @@ export default function AdminScreen({ navigateTo }) {
 
     const renderPrices = () => (
         <View style={styles.tabContent}>
+            
+            <ScrollView showsVerticalScrollIndicator={false}>
+                {prices.map((p, index) => (
+                    <View
+                        key={index}
+                        style={styles.priceRowAdmin}
+                    >
+                        <View style={styles.accentBarAdmin} />
+                        <View style={styles.priceMainInfoAdmin}>
+                            {editingId === p.id ? (
+                                <View style={{ flex: 1, padding: 10 }}>
+                                    <TextInput
+                                        style={[styles.inputAdmin, { marginBottom: 10 }]}
+                                        placeholder="Nombre del servicio"
+                                        placeholderTextColor="rgba(255,255,255,0.7)"
+                                        value={editingName}
+                                        onChangeText={setEditingName}
+                                    />
+                                    <TextInput
+                                        style={[styles.inputAdmin, { marginBottom: 10 }]}
+                                        placeholder="Precio (ej: 25,000)"
+                                        placeholderTextColor="rgba(255,255,255,0.7)"
+                                        value={editingPrice}
+                                        onChangeText={(text) => setEditingPrice(text.replace(/[^0-9,.]/g, ''))}
+                                        keyboardType="numeric"
+                                    />
+                                    <View style={{ flexDirection: 'row', justifyContent: 'space-between' }}>
+                                        <TouchableOpacity style={styles.btnAddPrice} onPress={handleUpdatePrice}>
+                                            <LinearGradient
+                                                colors={['#84CC16', '#65A30D']}
+                                                style={styles.btnGradient}
+                                            >
+                                                <Text style={styles.btnAddText}>Guardar</Text>
+                                            </LinearGradient>
+                                        </TouchableOpacity>
+                                        <TouchableOpacity style={styles.btnAddPrice} onPress={cancelEdit}>
+                                            <LinearGradient
+                                                colors={['#FF4D6D', '#FF4D6D']}
+                                                style={styles.btnGradient}
+                                            >
+                                                <Text style={styles.btnAddText}>Cancelar</Text>
+                                            </LinearGradient>
+                                        </TouchableOpacity>
+                                    </View>
+                                </View>
+                            ) : (
+                                <>
+                                    <Text style={styles.priceNameAdmin}>{p.name}</Text>
+                                    <View style={styles.priceRightAdmin}>
+                                        <View style={styles.priceCapsuleAdmin}>
+                                            <Text style={styles.priceValueAdmin}>${p.price}</Text>
+                                        </View>
+                                        <TouchableOpacity
+                                            onPress={() => startEdit(p)}
+                                            style={styles.deleteBtnAdmin}
+                                        >
+                                            <View style={styles.deleteIconBg}>
+                                                <Feather name="edit" size={16} color="#FFF" />
+                                            </View>
+                                        </TouchableOpacity>
+                                        <TouchableOpacity
+                                            onPress={() => handleDeletePrice(p.id)}
+                                            style={styles.deleteBtnAdmin}
+                                        >
+                                            <View style={styles.deleteIconBg}>
+                                                <Feather name="trash-2" size={16} color="#FFF" />
+                                            </View>
+                                        </TouchableOpacity>
+                                    </View>
+                                </>
+                            )}
+                        </View>
+                    </View>
+                ))}
+            </ScrollView>
             <View style={styles.formCard}>
                 <TextInput
                     style={styles.inputAdmin}
@@ -294,7 +419,7 @@ export default function AdminScreen({ navigateTo }) {
                     placeholder="Precio (ej: 25,000)"
                     placeholderTextColor="rgba(255,255,255,0.7)"
                     value={newPrice}
-                    onChangeText={(text) => setNewPrice(text.replace(/[^0-9]/g, ''))}
+                    onChangeText={(text) => setNewPrice(text.replace(/[^0-9,.]/g, ''))}
                     keyboardType="numeric"
                 />
                 <TouchableOpacity style={styles.btnAddPrice} onPress={handleAddPrice}>
@@ -306,32 +431,6 @@ export default function AdminScreen({ navigateTo }) {
                     </LinearGradient>
                 </TouchableOpacity>
             </View>
-            <ScrollView showsVerticalScrollIndicator={false}>
-                {prices.map((p, index) => (
-                    <View
-                        key={index}
-                        style={styles.priceRowAdmin}
-                    >
-                        <View style={styles.accentBarAdmin} />
-                        <View style={styles.priceMainInfoAdmin}>
-                            <Text style={styles.priceNameAdmin}>{p.name}</Text>
-                            <View style={styles.priceRightAdmin}>
-                                <View style={styles.priceCapsuleAdmin}>
-                                    <Text style={styles.priceValueAdmin}>${p.price}</Text>
-                                </View>
-                                <TouchableOpacity
-                                    onPress={() => handleDeletePrice(p.id)}
-                                    style={styles.deleteBtnAdmin}
-                                >
-                                    <View style={styles.deleteIconBg}>
-                                        <Feather name="trash-2" size={16} color="#FFF" />
-                                    </View>
-                                </TouchableOpacity>
-                            </View>
-                        </View>
-                    </View>
-                ))}
-            </ScrollView>
         </View>
     );
 
@@ -350,7 +449,7 @@ export default function AdminScreen({ navigateTo }) {
                     placeholder="Precio (ej: 25,000)"
                     placeholderTextColor="rgba(255,255,255,0.7)"
                     value={newPrice}
-                    onChangeText={(text) => setNewPrice(text.replace(/[^0-9]/g, ''))}
+                    onChangeText={(text) => setNewPrice(text.replace(/[^0-9,.]/g, ''))}
                     keyboardType="numeric"
                 />
                 <TouchableOpacity style={styles.btnAddPrice} onPress={handleAddPromotion}>
@@ -370,20 +469,68 @@ export default function AdminScreen({ navigateTo }) {
                     >
 
                         <View style={styles.priceMainInfoAdmin}>
-                            <Text style={styles.priceNameAdmin}>{p.name}</Text>
-                            <View style={styles.priceRightAdmin}>
-                                <View style={styles.priceCapsuleAdmin}>
-                                    <Text style={styles.priceValueAdmin}>${p.price}</Text>
-                                </View>
-                                <TouchableOpacity
-                                    onPress={() => handleDeletePromotion(p.id)}
-                                    style={styles.deleteBtnAdmin}
-                                >
-                                    <View style={styles.deleteIconBg}>
-                                        <Feather name="trash-2" size={16} color="#FFF" />
+                            {editingId === p.id ? (
+                                <View style={{ flex: 1, padding: 10 }}>
+                                    <TextInput
+                                        style={[styles.inputAdmin, { marginBottom: 10 }]}
+                                        placeholder="Nombre de la promoción"
+                                        placeholderTextColor="rgba(255,255,255,0.7)"
+                                        value={editingName}
+                                        onChangeText={setEditingName}
+                                    />
+                                    <TextInput
+                                        style={[styles.inputAdmin, { marginBottom: 10 }]}
+                                        placeholder="Precio (ej: 25,000)"
+                                        placeholderTextColor="rgba(255,255,255,0.7)"
+                                        value={editingPrice}
+                                        onChangeText={(text) => setEditingPrice(text.replace(/[^0-9,.]/g, ''))}
+                                        keyboardType="numeric"
+                                    />
+                                    <View style={{ flexDirection: 'row', justifyContent: 'space-between' }}>
+                                        <TouchableOpacity style={styles.btnAddPrice} onPress={handleUpdatePromotion}>
+                                            <LinearGradient
+                                                colors={['#84CC16', '#65A30D']}
+                                                style={styles.btnGradient}
+                                            >
+                                                <Text style={styles.btnAddText}>Guardar</Text>
+                                            </LinearGradient>
+                                        </TouchableOpacity>
+                                        <TouchableOpacity style={styles.btnAddPrice} onPress={cancelEdit}>
+                                            <LinearGradient
+                                                colors={['#FF4D6D', '#FF4D6D']}
+                                                style={styles.btnGradient}
+                                            >
+                                                <Text style={styles.btnAddText}>Cancelar</Text>
+                                            </LinearGradient>
+                                        </TouchableOpacity>
                                     </View>
-                                </TouchableOpacity>
-                            </View>
+                                </View>
+                            ) : (
+                                <>
+                                    <Text style={styles.priceNameAdmin}>{p.name}</Text>
+                                    <View style={styles.priceRightAdmin}>
+                                        <View style={styles.priceCapsuleAdmin}>
+                                            <Text style={styles.priceValueAdmin}>${p.price}</Text>
+                                        </View>
+                                        <TouchableOpacity
+                                            onPress={() => startEdit(p)}
+                                            style={styles.deleteBtnAdmin}
+                                        >
+                                            <View style={styles.deleteIconBg}>
+                                                <Feather name="edit" size={16} color="#FFF" />
+                                            </View>
+                                        </TouchableOpacity>
+                                        <TouchableOpacity
+                                            onPress={() => handleDeletePromotion(p.id)}
+                                            style={styles.deleteBtnAdmin}
+                                        >
+                                            <View style={styles.deleteIconBg}>
+                                                <Feather name="trash-2" size={16} color="#FFF" />
+                                            </View>
+                                        </TouchableOpacity>
+                                    </View>
+                                </>
+                            )}
                         </View>
                     </View>
                 ))}
