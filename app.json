@@ -16,10 +16,10 @@
     },
     "android": {
       "adaptiveIcon": {
-        "foregroundImage": "./assets/icon.png",
+        "foregroundImage": "./assets/icon.jpg",
         "backgroundColor": "#ffffff"
       },
-      "package": "com.felipeal0923lgtm.Nuevo"
+      "package": "com.felipeal0923lgtm.nuevo"
     },
     "web": {
       "favicon": "./assets/favicon.png"
@@ -28,6 +28,12 @@
       "eas": {
         "projectId": "d4ee036b-3b1b-4312-a7bf-2bde8cf06262"
       }
+    },
+    "runtimeVersion": {
+      "policy": "appVersion"
+    },
+    "updates": {
+      "url": "https://u.expo.dev/d4ee036b-3b1b-4312-a7bf-2bde8cf06262"
     }
   }
 }

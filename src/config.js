@@ -1,1 +1,1 @@
-export const API_URL = 'https://wet-nails-build.loca.lt';
+export const API_URL = 'https://proyect-estetick-production.up.railway.app';
