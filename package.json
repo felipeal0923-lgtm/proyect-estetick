@@ -15,30 +15,25 @@
     "git-commit": "git commit -m",
     "git-push": "git push origin main"
   },
-  "engines": {
-    "node": ">=20.0.0"
-  },
   "dependencies": {
-    "@expo/metro-runtime": "~6.1.2",
-    "cors": "^2.8.6",
-    "dotenv": "^17.4.2",
-    "expo": "~54.0.34",
-    "expo-image-picker": "~17.0.11",
-    "expo-linear-gradient": "~15.0.8",
-    "expo-status-bar": "~3.0.9",
-    "express": "^5.2.1",
-    "i": "^0.3.7",
-    "react": "19.1.0",
-    "react-dom": "19.1.0",
-    "react-native": "0.81.5",
-    "react-native-linear-gradient": "^2.8.3",
+    "@expo/metro-runtime": "~55.0.11",
+    "cors": "^2.8.5",
+    "dotenv": "^16.4.5",
+    "expo": "^55.0.23",
+    "expo-image-picker": "~55.0.20",
+    "expo-linear-gradient": "~55.0.13",
+    "expo-status-bar": "~55.0.6",
+    "expo-updates": "~55.0.21",
+    "express": "^4.19.2",
+    "install": "^0.13.0",
+    "react": "19.2.0",
+    "react-dom": "19.2.0",
+    "react-native": "0.83.6",
     "react-native-web": "^0.21.0"
   },
-  "private": true,
   "devDependencies": {
     "concurrently": "^9.2.1",
-    "eas-cli": "^18.10.0",
-    "expo-module-scripts": "^55.0.2",
-    "pg": "^8.20.0"
-  }
+    "pg": "^8.11.3"
+  },
+  "private": true
 }
