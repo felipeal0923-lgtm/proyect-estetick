@@ -1,22 +1,22 @@
 import React, { useState, useEffect } from 'react';
 import * as ImagePicker from 'expo-image-picker';
-import { View, Image, StyleSheet, Pressable, Modal, Text, TouchableOpacity, ScrollView } from 'react-native';
+import { View, Image, StyleSheet, Pressable, Modal, Text, TouchableOpacity, Platform } from 'react-native';
 import ImagePerfil from './ImagePerfil';
 import { LinearGradient } from 'expo-linear-gradient';
 import { Feather } from '@expo/vector-icons';
 import { API_URL } from '../config';
+import Storage from '../storage';
 
-export default function Header({ onNavigate, unreadCount, onPressNoti }) {
+export default function Header({ onNavigate, unreadCount, onPressNoti, onLogout }) {
   const [menuVisible, setMenuVisible] = useState(false);
   const [profileImage, setProfileImage] = useState('https://i.pravatar.cc/150?u=antigravity');
 
   useEffect(() => {
-    if (typeof localStorage !== 'undefined') {
-      const savedImage = localStorage.getItem('profileImage');
-      if (savedImage && !savedImage.startsWith('blob:')) {
-        setProfileImage(savedImage);
+    Storage.getItem('profileImage').then(saved => {
+      if (saved && !saved.startsWith('blob:')) {
+        setProfileImage(saved);
       }
-    }
+    });
   }, []);
 
   const pickImage = async () => {
@@ -30,10 +30,9 @@ export default function Header({ onNavigate, unreadCount, onPressNoti }) {
     if (!result.canceled) {
       const uri = result.assets[0].uri;
       setProfileImage(uri);
-
-      // Solo guardamos en localStorage si NO es una URL temporal de navegador (blob)
-      if (typeof localStorage !== 'undefined' && !uri.startsWith('blob:')) {
-        localStorage.setItem('profileImage', uri);
+      // Solo guardamos si NO es una URL temporal de navegador (blob)
+      if (!uri.startsWith('blob:')) {
+        await Storage.setItem('profileImage', uri);
       }
     }
   };
@@ -114,16 +113,19 @@ export default function Header({ onNavigate, unreadCount, onPressNoti }) {
               <TouchableOpacity
                 key={option.id}
                 style={styles.menuItem}
-                onPress={() => {
+                onPress={async () => {
                   setMenuVisible(false);
                   if (typeof onNavigate === 'function') {
                     if (option.id === 1) onNavigate(4);      // Mis Agendas
                     else if (option.id === 2) onNavigate(3); // Mi Perfil
                   }
                   if (option.id === 3) {
-                    if (typeof localStorage !== 'undefined') {
-                      localStorage.removeItem('userId');
-                      localStorage.removeItem('userName');
+                    await Storage.removeItem('userId');
+                    await Storage.removeItem('userName');
+                    await Storage.removeItem('profileImage');
+                    if (typeof onLogout === 'function') {
+                      onLogout();
+                    } else if (Platform.OS === 'web' && typeof window !== 'undefined') {
                       window.location.reload();
                     }
                   }

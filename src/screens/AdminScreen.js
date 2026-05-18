@@ -3,6 +3,7 @@ import { View, Text, StyleSheet, ScrollView, TouchableOpacity, ActivityIndicator
 import { LinearGradient } from 'expo-linear-gradient';
 import { Feather } from '@expo/vector-icons';
 import { API_URL } from '../config';
+import Storage from '../storage';
 
 export default function AdminScreen({ navigateTo }) {
     const [activeTab, setActiveTab] = useState('agendas');
@@ -28,7 +29,8 @@ export default function AdminScreen({ navigateTo }) {
     const [unreadCount, setUnreadCount] = useState(0);
 
     const fetchNotifications = async () => {
-        const userId = localStorage.getItem('userId') || 1; // El admin suele ser id=1
+        const storedId = await Storage.getItem('userId');
+        const userId = storedId || 1; // El admin suele ser id=1
         try {
             const res = await fetch(`${API_URL}/api/notifications/${userId}`);
             const data = await res.json();
@@ -47,7 +49,8 @@ export default function AdminScreen({ navigateTo }) {
     };
 
     const clearNotifications = async () => {
-        const userId = localStorage.getItem('userId') || 1;
+        const storedId = await Storage.getItem('userId');
+        const userId = storedId || 1;
         try {
             await fetch(`${API_URL}/api/notifications/user/${userId}`, { method: 'DELETE' });
             setNotifications([]);

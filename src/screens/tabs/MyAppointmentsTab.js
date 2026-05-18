@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { View, Text, StyleSheet, ScrollView, TouchableOpacity, Alert, Platform, TextInput } from 'react-native';
 import { Feather } from '@expo/vector-icons';
 import { API_URL } from '../../config';
+import Storage from '../../storage';
 
 export default function MyAppointmentsTab() {
     const [userAppointments, setUserAppointments] = useState([]);
@@ -10,7 +11,7 @@ export default function MyAppointmentsTab() {
     const [newPhone, setNewPhone] = useState('');
 
     const fetchUserAppointments = async () => {
-        const userId = typeof localStorage !== 'undefined' ? localStorage.getItem('userId') : null;
+        const userId = await Storage.getItem('userId');
         if (!userId) return;
         
         setLoading(true);
@@ -28,7 +29,7 @@ export default function MyAppointmentsTab() {
     };
 
     const fetchUserData = async () => {
-        const userId = typeof localStorage !== 'undefined' ? localStorage.getItem('userId') : null;
+        const userId = await Storage.getItem('userId');
         if (!userId) return;
         try {
             const res = await fetch(`${API_URL}/api/user/${userId}`);
@@ -40,7 +41,7 @@ export default function MyAppointmentsTab() {
     };
 
     const handleUpdatePhone = async () => {
-        const userId = typeof localStorage !== 'undefined' ? localStorage.getItem('userId') : null;
+        const userId = await Storage.getItem('userId');
         if (!newPhone || !userId) return alert('Ingresa un número válido');
         try {
             const response = await fetch(`${API_URL}/api/user/update-phone`, {

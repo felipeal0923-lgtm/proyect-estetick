@@ -4,6 +4,7 @@ import { LinearGradient } from 'expo-linear-gradient';
 import CustomButton from '../components/buttom';
 import InputText from '../components/inputText';
 import { API_URL } from '../config';
+import Storage from '../storage';
 
 
 export default function RegisterScreen({ navigateTo }) {
@@ -79,15 +80,14 @@ export default function RegisterScreen({ navigateTo }) {
                                 });
                                 const data = await response.json();
                                 if (data.success) {
-                                    if (typeof localStorage !== 'undefined') {
-                                        localStorage.setItem('userId', data.userId);
-                                    }
+                                    await Storage.setItem('userId', String(data.userId));
+                                    await Storage.setItem('userName', data.name || name);
                                     navigateTo('Dashboard');
                                 } else {
-                                    alert(data.error);
+                                    alert(data.error || 'Error al registrarse');
                                 }
                             } catch (e) {
-                                alert('Error al conectar con el servidor backend');
+                                alert('Error al conectar con el servidor. Verifica tu conexión.');
                             }
                         }}
                     />

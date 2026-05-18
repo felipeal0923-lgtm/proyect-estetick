@@ -63,7 +63,7 @@ export default function App() {
       case 'ResetPassword':
         return <ResetPasswordScreen navigateTo={navigateTo} />;
       case 'Dashboard':
-        return <DashboardScreen />;
+        return <DashboardScreen onLogout={() => navigateTo('Welcome')} />;
       case 'Admin':
         return <AdminScreen navigateTo={navigateTo} />;
       default:

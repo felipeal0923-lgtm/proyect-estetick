@@ -3,6 +3,7 @@ import { View, Text, StyleSheet, ScrollView, TouchableOpacity, Alert, Platform, 
 import { Feather } from '@expo/vector-icons';
 import { LinearGradient } from 'expo-linear-gradient';
 import { API_URL } from '../../config';
+import Storage from '../../storage';
 
 export default function ProfileTab() {
     const [userAppointments, setUserAppointments] = useState([]);
@@ -16,7 +17,7 @@ export default function ProfileTab() {
     const [editEmail, setEditEmail] = useState('');
 
     const fetchUserAppointments = async () => {
-        const userId = typeof localStorage !== 'undefined' ? localStorage.getItem('userId') : null;
+        const userId = await Storage.getItem('userId');
         if (!userId) return;
 
         try {
@@ -31,7 +32,7 @@ export default function ProfileTab() {
     };
 
     const fetchUserData = async () => {
-        const userId = typeof localStorage !== 'undefined' ? localStorage.getItem('userId') : null;
+        const userId = await Storage.getItem('userId');
         if (!userId) return;
         setLoading(true);
         try {
@@ -52,7 +53,7 @@ export default function ProfileTab() {
     };
 
     const handleUpdateProfile = async () => {
-        const userId = typeof localStorage !== 'undefined' ? localStorage.getItem('userId') : null;
+        const userId = await Storage.getItem('userId');
         if (!userId) return;
 
         try {
@@ -71,9 +72,7 @@ export default function ProfileTab() {
                 alert('Perfil actualizado con éxito');
                 setIsEditing(false);
                 fetchUserData();
-                if (typeof localStorage !== 'undefined') {
-                    localStorage.setItem('userName', editName);
-                }
+                await Storage.setItem('userName', editName);
             } else {
                 alert(data.error || 'Error al actualizar');
             }

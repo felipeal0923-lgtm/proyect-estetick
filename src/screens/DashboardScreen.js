@@ -12,8 +12,9 @@ import ProfileTab from './tabs/ProfileTab';
 import MyAppointmentsTab from './tabs/MyAppointmentsTab';
 
 import { API_URL } from '../config';
+import Storage from '../storage';
 
-export default function DashboardScreen() {
+export default function DashboardScreen({ onLogout }) {
     const [activeTabIndex, setActiveTabIndex] = useState(0);
     const [notiVisible, setNotiVisible] = useState(false);
     const [notifications, setNotifications] = useState([]);
@@ -35,13 +36,13 @@ export default function DashboardScreen() {
     const markAsRead = async (id) => {
         try {
             await fetch(`${API_URL}/api/notifications/${id}`, { method: 'DELETE' });
-            const userId = localStorage.getItem('userId');
+            const userId = await Storage.getItem('userId');
             if (userId) fetchNotifications(userId);
         } catch (err) { console.log(err); }
     };
 
     const clearNotifications = async () => {
-        const userId = localStorage.getItem('userId');
+        const userId = await Storage.getItem('userId');
         if (!userId) return;
         try {
             const res = await fetch(`${API_URL}/api/notifications/user/${userId}`, { method: 'DELETE' });
@@ -56,14 +57,15 @@ export default function DashboardScreen() {
     };
 
     useEffect(() => {
-        if (typeof localStorage !== 'undefined') {
-            const userId = localStorage.getItem('userId');
+        const initNotifications = async () => {
+            const userId = await Storage.getItem('userId');
             if (userId) {
                 fetchNotifications(userId);
-                const interval = setInterval(() => fetchNotifications(userId), 30000); // Polling cada 30s
+                const interval = setInterval(() => fetchNotifications(userId), 30000);
                 return () => clearInterval(interval);
             }
-        }
+        };
+        initNotifications();
     }, [fetchNotifications]);
 
     const renderTabContent = () => {
@@ -89,6 +91,7 @@ export default function DashboardScreen() {
                     setNotiVisible(true);
                     setUnreadCount(0);
                 }}
+                onLogout={onLogout}
             />
             <Menu 
                 activeIndex={activeTabIndex} 

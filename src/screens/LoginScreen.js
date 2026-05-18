@@ -1,10 +1,11 @@
 import React, { useState } from 'react';
-import { View, Text, StyleSheet, TouchableOpacity, Image } from 'react-native';
+import { View, Text, StyleSheet, TouchableOpacity } from 'react-native';
 import { AntDesign } from '@expo/vector-icons';
 import { LinearGradient } from 'expo-linear-gradient';
 import CustomButton from '../components/buttom';
 import InputText from '../components/inputText';
 import { API_URL } from '../config';
+import Storage from '../storage';
 
 
 export default function LoginScreen({ navigateTo }) {
@@ -59,16 +60,14 @@ export default function LoginScreen({ navigateTo }) {
                                 });
                                 const data = await response.json();
                                 if (data.success) {
-                                    if (typeof localStorage !== 'undefined') {
-                                        localStorage.setItem('userId', data.userId);
-                                        localStorage.setItem('userName', data.name);
-                                    }
+                                    await Storage.setItem('userId', String(data.userId));
+                                    await Storage.setItem('userName', data.name || '');
                                     navigateTo('Dashboard');
                                 } else {
-                                    alert(data.error);
+                                    alert(data.error || 'Credenciales inválidas');
                                 }
                             } catch (e) {
-                                alert('Error al conectar con el servidor backend');
+                                alert('Error al conectar con el servidor. Verifica tu conexión.');
                             }
                         }}
                     />

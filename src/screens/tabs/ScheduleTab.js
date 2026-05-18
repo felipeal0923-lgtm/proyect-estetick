@@ -3,6 +3,7 @@ import { View, Text, StyleSheet, ScrollView, TouchableOpacity } from 'react-nati
 import { Feather } from '@expo/vector-icons';
 import { LinearGradient } from 'expo-linear-gradient';
 import { API_URL } from '../../config';
+import Storage from '../../storage';
 
 
 const monthNamesEs = ['enero', 'febrero', 'marzo', 'abril', 'mayo', 'junio', 'julio', 'agosto', 'septiembre', 'octubre', 'noviembre', 'diciembre'];
@@ -217,7 +218,13 @@ export default function ScheduleTab() {
         return `Confirmacion de\nagendamiento\npara el ${dayOfWeek} ${dayNumStr} de\n${monthStr} de ${yearStr}\na las ${selectedTime}.`;
     };
 
-    const clientName = typeof localStorage !== 'undefined' ? (localStorage.getItem('userName') || 'Invitado') : 'Invitado';
+    const [clientName, setClientName] = useState('Invitado');
+
+    useEffect(() => {
+        Storage.getItem('userName').then(name => {
+            if (name) setClientName(name);
+        });
+    }, []);
 
     const renderConfirmation = () => (
         <View style={styles.confirmationContainer}>
@@ -231,7 +238,7 @@ export default function ScheduleTab() {
                 <Text style={styles.clientText}>CLIENTE: {clientName}</Text>
 
                 <TouchableOpacity style={styles.btnConfirm} onPress={async () => {
-                    const userId = typeof localStorage !== 'undefined' ? localStorage.getItem('userId') : null;
+                    const userId = await Storage.getItem('userId');
                     if (!userId) {
                         alert('Por favor vuelve al inicio y regístrate para poder agendar tu cita.');
                         return;
