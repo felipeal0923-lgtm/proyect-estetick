@@ -156,7 +156,9 @@ async function initDB() {
 
 // Registro
 app.post('/api/register', async (req, res) => {
-    const { identifier, name, phone, password, businessId = 1 } = req.body;
+    let { identifier, name, phone, password, businessId = 1 } = req.body;
+    identifier = identifier ? identifier.trim().toLowerCase() : '';
+    phone = phone ? phone.trim() : '';
     try {
         const result = await pool.query(
             `INSERT INTO users (identifier, name, phone, password, "businessId") VALUES ($1, $2, $3, $4, $5) RETURNING id`,
@@ -170,10 +172,11 @@ app.post('/api/register', async (req, res) => {
 
 // Login
 app.post('/api/login', async (req, res) => {
-    const { identifier, password } = req.body;
+    let { identifier, password } = req.body;
+    identifier = identifier ? identifier.trim() : '';
     try {
         const result = await pool.query(
-            `SELECT id, name, "businessId", role FROM users WHERE identifier = $1 AND password = $2`,
+            `SELECT id, name, "businessId", role FROM users WHERE LOWER(identifier) = LOWER($1) AND password = $2`,
             [identifier, password]
         );
         if (result.rows.length === 0) return res.status(401).json({ error: 'Credenciales inválidas' });
