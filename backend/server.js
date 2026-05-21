@@ -483,11 +483,11 @@ app.put('/api/admin/promotions/:id', async (req, res) => {
 
 // ─── Inicio ────────────────────────────────────────────────────────────────
 const PORT = process.env.PORT || 3001;
-initDB().then(() => {
-    app.listen(PORT, () => {
-        console.log(`🚀 Servidor ejecutándose en http://localhost:${PORT}`);
+app.get('/', (req, res) => res.send('OK'));
+
+app.listen(PORT, '0.0.0.0', () => {
+    console.log(`🚀 Servidor ejecutándose en puerto ${PORT}`);
+    initDB().catch(err => {
+        console.error('Error al inicializar la DB:', err);
     });
-}).catch(err => {
-    console.error('Error al inicializar la DB:', err);
-    process.exit(1);
 });
