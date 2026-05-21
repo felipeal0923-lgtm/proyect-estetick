@@ -9,7 +9,7 @@
     "backend": "node backend/server.js",
     "web": "concurrently --handle-input \"npm run backend\" \"expo start --web\"",
     "dev": "concurrently --handle-input \"npm run backend\" \"npm run web\"",
-    "list-users": "node -r dotenv/config -e \"const { Pool } = require('pg'); const p = new Pool({ connectionString: process.env.DATABASE_URL, ssl: { rejectUnauthorized: false } }); p.query('SELECT * FROM users').then(r => { console.table(r.rows); p.end(); })\"",
+    "list-users": "node -r dotenv/config -e \"const { Pool } = require('pg'); const p = new Pool({ connectionString: process.env.DATABASE_URL, ssl: { rejectUnauthorized: false } }); p.query('SELECT id, name, identifier, phone, role, \\\"businessId\\\" FROM users').then(r => { console.table(r.rows); p.end(); })\"",
     "git-status": "git status",
     "git-add": "git add .",
     "git-commit": "git commit -m",
@@ -27,14 +27,14 @@
     "expo-updates": "~55.0.21",
     "express": "^4.19.2",
     "install": "^0.13.0",
+    "pg": "^8.11.3",
     "react": "19.2.0",
     "react-dom": "19.2.0",
     "react-native": "0.83.6",
     "react-native-web": "^0.21.0"
   },
   "devDependencies": {
-    "concurrently": "^9.2.1",
-    "pg": "^8.11.3"
+    "concurrently": "^9.2.1"
   },
   "private": true
 }
