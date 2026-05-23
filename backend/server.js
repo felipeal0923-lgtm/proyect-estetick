@@ -3,21 +3,31 @@ const express = require('express');
 const cors = require('cors');
 const { Pool } = require('pg');
 
+// ─── Diagnóstico de inicio ──────────────────────────────────────────────────
+console.log('🔍 [STARTUP] DATABASE_URL presente:', !!process.env.DATABASE_URL);
+console.log('🔍 [STARTUP] NODE_ENV:', process.env.NODE_ENV || 'no definido');
+console.log('🔍 [STARTUP] PORT env:', process.env.PORT || 'sin definir (se usará 3001)');
+if (!process.env.DATABASE_URL) {
+    console.error('❌ [STARTUP] ERROR CRÍTICO: DATABASE_URL no está configurado.');
+    console.error('   → Ve a Railway → tu servicio → Variables y agrega DATABASE_URL');
+}
+
 const app = express();
 app.use(cors());
 app.use(express.json());
 
-app.use((req, res, next) => {
-  res.setHeader(
-    'Content-Security-Policy',
-    "default-src 'self'; connect-src 'self' http://localhost:3001; img-src 'self' data:; style-src 'self' 'unsafe-inline'; script-src 'self';"
-  );
-  next();
-});
 // ─── Conexión a la base de datos ───────────────────────────────────────────
 const pool = new Pool({
     connectionString: process.env.DATABASE_URL,
     ssl: process.env.DATABASE_URL ? { rejectUnauthorized: false } : false,
+});
+
+// Test inmediato de conexión al arrancar
+pool.query('SELECT 1').then(() => {
+    console.log('✅ [STARTUP] Conexión a PostgreSQL exitosa');
+}).catch(err => {
+    console.error('❌ [STARTUP] Fallo en conexión a PostgreSQL:', err.message);
+    console.error('   Código de error:', err.code);
 });
 
 // Alias para mantener la misma API interna
@@ -175,6 +185,7 @@ app.post('/api/login', async (req, res) => {
     let { identifier, password } = req.body;
     identifier = identifier ? identifier.trim() : '';
     console.log(`[LOGIN] Intento de login para: ${identifier}`);
+    console.log(`[LOGIN] DATABASE_URL presente: ${!!process.env.DATABASE_URL}`);
     try {
         const result = await pool.query(
             `SELECT id, name, "businessId", role FROM users WHERE LOWER(identifier) = LOWER($1) AND password = $2`,
@@ -188,8 +199,15 @@ app.post('/api/login', async (req, res) => {
         console.log(`[LOGIN] Login exitoso para userId: ${row.id}`);
         res.json({ success: true, userId: row.id, name: row.name, businessId: row.businessId, role: row.role });
     } catch (err) {
-        console.error(`[LOGIN] ERROR DB:`, err.message, err.code);
-        res.status(500).json({ error: 'Error interno del servidor: ' + err.message });
+        console.error(`[LOGIN] ERROR DB completo:`, err);
+        console.error(`[LOGIN] Mensaje:`, err.message);
+        console.error(`[LOGIN] Código:`, err.code);
+        console.error(`[LOGIN] DATABASE_URL al momento del error:`, process.env.DATABASE_URL ? 'presente' : 'AUSENTE');
+        res.status(500).json({
+            error: 'Error interno del servidor',
+            detail: err.message,
+            code: err.code
+        });
     }
 });
 
