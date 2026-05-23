@@ -174,16 +174,22 @@ app.post('/api/register', async (req, res) => {
 app.post('/api/login', async (req, res) => {
     let { identifier, password } = req.body;
     identifier = identifier ? identifier.trim() : '';
+    console.log(`[LOGIN] Intento de login para: ${identifier}`);
     try {
         const result = await pool.query(
             `SELECT id, name, "businessId", role FROM users WHERE LOWER(identifier) = LOWER($1) AND password = $2`,
             [identifier, password]
         );
-        if (result.rows.length === 0) return res.status(401).json({ error: 'Credenciales inválidas' });
+        if (result.rows.length === 0) {
+            console.log(`[LOGIN] Credenciales inválidas para: ${identifier}`);
+            return res.status(401).json({ error: 'Credenciales inválidas' });
+        }
         const row = result.rows[0];
+        console.log(`[LOGIN] Login exitoso para userId: ${row.id}`);
         res.json({ success: true, userId: row.id, name: row.name, businessId: row.businessId, role: row.role });
     } catch (err) {
-        res.status(500).json({ error: err.message });
+        console.error(`[LOGIN] ERROR DB:`, err.message, err.code);
+        res.status(500).json({ error: 'Error interno del servidor: ' + err.message });
     }
 });
 
@@ -484,6 +490,26 @@ app.put('/api/admin/promotions/:id', async (req, res) => {
 // ─── Inicio ────────────────────────────────────────────────────────────────
 const PORT = process.env.PORT || 3001;
 app.get('/', (req, res) => res.send('OK'));
+
+// Health check con test de DB
+app.get('/api/health', async (req, res) => {
+    try {
+        const result = await pool.query('SELECT NOW() as time, COUNT(*) as users FROM users');
+        res.json({
+            status: 'ok',
+            db: 'connected',
+            time: result.rows[0].time,
+            users: result.rows[0].users,
+            env: {
+                hasDbUrl: !!process.env.DATABASE_URL,
+                port: PORT
+            }
+        });
+    } catch (err) {
+        console.error('[HEALTH] DB error:', err.message);
+        res.status(500).json({ status: 'error', db: 'disconnected', error: err.message });
+    }
+});
 
 app.listen(PORT, '0.0.0.0', () => {
     console.log(`🚀 Servidor ejecutándose en puerto ${PORT}`);
